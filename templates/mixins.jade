@@ -1,0 +1,20 @@
+mixin htmlbase(title)
+	doctype
+	html(lang='en')
+		head
+			title= title
+		body
+			header
+				h1 TJCSC
+				nav
+					ul.navigation
+						li: a Home
+						li: a Wiki
+						li: a Problems
+						li: a Scores
+						li: a About
+				div.user
+					a Log in
+					a Register
+			if block
+				block
