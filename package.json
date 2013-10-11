@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "tj's computer security club website platform",
   "scripts": {
-    "compile": "jade templates/sources -o compiled"
+    "compile": "jade templates/sources -o public/views; sass --update sass:public/css; cp -r resources/* public",
+    "prestart": "npm run-script compile"
   },
   "dependencies": {
     "bcrypt": "~0.7.7",
