@@ -1,0 +1,51 @@
+Variables in a key represented by $
+
+Lists of all things
+user:list
+problem:list
+wiki:forum:list
+
+Users: Hash on user:$id
+	id			= INCR user:id:next
+	username	= string username
+	password	= password hash bits unencoded
+	email		= user email
+	date		= creation date
+
+Problems:
+	Data: Hash on problem:$id
+		id			= INCR problem:id:next
+		answer		= answer hash bits unencoded. hashed from key=value form urlencoded alphabetically by key
+		statement	= string problem statement in md format
+		name		= string problem name
+		author		= problem author user $id
+		points		= integer point value
+		date		= creation date
+
+	Interations
+		problem:users:$problemid	= set of user $id
+
+	Interactions: Hash on user:problems:$userid
+		$problemid	= unix timestamp of first attempt:unix timestamp of first solution:attempts
+
+	Leaderboard: problem:scores sorted set
+		user points -> user $id
+
+Wiki:
+	Markdown input
+	Forum wiki:forum:$id
+		id			= INCR wiki:forum:id:next
+		title		= string title
+		location	= forum $id parent or -1 for top-level forum
+	wiki:forum:$id:topics	= sorted set of update timestamp -> $topicid
+	Topic wiki:topic:$id
+		id 			= INCR wiki:topic:id:next
+		title		= string title
+		author		= $userid starter
+		date		= unix timestamp creation date
+	wiki:topic:$id:posts	= list of $postid
+	Post wiki:post:$id
+		id			= INCR wiki:post:id:next
+		author		= $userid starter
+		content		= markdown text
+		date		= unix timestamp creation date

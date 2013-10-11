@@ -1,0 +1,11 @@
+include mixins
+
++htmlbase('Problem List')
+	each problem in problems
+		section.problem
+			div.problem-name: a(href=('/problems/' + problem.id))= problem.name
+			div.problem-author= problem.author
+			div.problem-solved
+				- if interactions[problem.id].attempts > 0
+					img(src='/images/' + (interactions[problem.id].solved ? 'correct' : 'incorrect') + '.png')
+			div.problem-points= problem.points + ' points'

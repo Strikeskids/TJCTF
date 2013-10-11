@@ -1,0 +1,13 @@
+include mixins
+
++htmlbase(problem.name +  " (" + new Date(problem.date).toLocaleDateString() + ")")
+	.title
+		h1= problem.name + " by " + problem.author
+		.right= problem.points + " points"
+	section= problem.statement
+	form(action='/problems/submit', method='post')
+		input(type='hidden', name='problemid', value=problem.id.toString())
+		input(type='text', name='answer', id='answer', value=answer)
+		- if typeof correct === 'boolean'
+			img.inline(src='/images/' + (correct ? 'correct' : 'incorrect') + 'png')
+		input(type='submit', value='Submit')

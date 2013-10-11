@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "description": "tj's computer security club website platform",
   "scripts": {
-    "start": "node server.js",
-    "compile": "jade templates/sources -p templates -o compiled"
+    "compile": "jade templates/sources -o compiled"
   },
   "dependencies": {
     "bcrypt": "~0.7.7",
