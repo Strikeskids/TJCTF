@@ -5,9 +5,9 @@ include mixins
 		h1= problem.name + " by " + problem.author
 		.right= problem.points + " points"
 	section= problem.statement
-	form(action='/problems/submit', method='post')
+	form(action='', method='post')
 		input(type='hidden', name='problemid', value=problem.id.toString())
 		input(type='text', name='answer', id='answer', value=answer)
-		- if typeof correct === 'boolean'
-			img.inline(src='/images/' + (correct ? 'correct' : 'incorrect') + 'png')
+		if typeof correct === 'boolean'
+			img.inline(src='/images/' + (correct ? 'correct' : 'incorrect') + '.png')
 		input(type='submit', value='Submit')

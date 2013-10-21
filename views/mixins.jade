@@ -14,8 +14,13 @@ mixin htmlbase(title)
 						li: a Scores
 						li: a About
 				div.user
-					a Log in
-					|  | 
-					a Register
+					if user && typeof user !== 'undefined'
+						a= user.username
+						|  | 
+						a(href='/logout') Logout
+					else
+						a(href='/login') Log in
+						|  | 
+						a(href='/register') Register
 			if block
 				block
