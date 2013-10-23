@@ -1,14 +1,16 @@
 var util = require('util');
 var redis = require('redis');
 var crypto = require('crypto');
+var bcrypt = require('bcrypt');
 
 var shasum = function(input) {
 	return crypto.createHash('sha1').update(input).digest('hex');
 };
 
-var exp = {};
+var db = function() {
+};
 
-var db;
+var rdb;
 
 var testProblem = {
 	name: 'problem',
@@ -27,31 +29,61 @@ var problems = {
 	'0': testProblem
 };
 
-exp.init = function() {
+db.prototype.init = function() {
 	
 };
 
-exp.checkProblem = function(problemid, answer) {
-	problem = getProblem(problemid);
+db.prototype.checkProblem = function(problemid, answer) {
+	problem = this.getProblem(problemid);
 	if (!problem) {
-		return false;
+		return {};
 	}
+	correct = shasum(answer) === problem.answer;
+	if (correct) {
+		//do user-related stuff
+	}
+	return {
+		problem: problem,
+		correct: correct
+	};
 };
 
-exp.getProblem = function(problemid) {
+db.prototype.getProblem = function(problemid) {
 	return testProblem;
 };
 
-exp.getProblems = function() {
+db.prototype.getProblems = function() {
 	return problems;
 };
 
-exp.getUser = function(uid) {
+db.prototype.getUser = function(uid) {
 	return testUser;
 };
 
-exp.getInteraction = function(userid, problemid) {
+db.prototype.getUserId = function(username) {
 
 };
 
-module.exports = exp;
+db.prototype.getUserFromName = function(username) {
+	var id = this.getUserId(username);
+	if (typeof id === 'number') {
+		return getUser(id);
+	}
+	return null;
+};
+
+db.prototype.login = function(username, password, callback) {
+	var user = this.getUserFromName(username);
+	if (user) {
+		callback = function() { callback(user.id);  };
+		
+	} else {
+		callback();
+	}
+};
+
+db.prototype.getInteraction = function(userid, problemid) {
+
+};
+
+module.exports = new db();

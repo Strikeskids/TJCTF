@@ -31,6 +31,8 @@ app.get('/', function(req, res) {
 	res.render('index.jade');
 });
 
+//Problem related stuff
+
 app.get('/problems', function(req, res) {
 	res.render('list.jade', {
 		problems: db.getProblems()
@@ -49,30 +51,34 @@ app.get('/problems/:problemid', function(req, res) {
 });
 app.post('/problems/:problemid', function(req, res) {
 	if ('problemid' in req.body && 'answer' in req.body) {
-		problem = db.getProblem(parseInt(req.params.problemid=;…“‘æ));
-		if (!problem) {
-			res.redirect('/problems');
-			return;
+		response = db.checkProblem(req.body.problemid, req.body.answer);
+		if (response.problem) {
+			res.locals.answer = req.body.answer;
+			res.locals(response);
+			res.render('problem.jade');
 		}
-		correct = shasum(req.body.answer) === problem.answer;
-		res.location('/problems' + problem.id);
-		if (res.locals.user) {
-			// TODO do user points
-		}
-		res.locals({
-			correct: correct,
-			answer: req.body.answer,
-			problem: problem
-		});
-		res.render('problem.jade');
+	}
+	req.redirect('/problems');
+});
+
+//User related stuff
+app.get('/login', function(req, res) {
+	if (res.locals.user) {
+		res.redirect('/');
 	} else {
-		req.redirect('/problems');
+		res.render('login.jade');
+	}
+});
+app.post('/login', function(req, res) {
+	if ('username' in req.body && 'password' in req.body) {
+		
+	} else {
+		res.redirect('/');
 	}
 });
 
 app.get('/logout', function(req, res) {
 	res.cookie('uid', null);
-	res.locals.user = null;
 	res.redirect('/');
 });
 

@@ -5,6 +5,9 @@ user:list
 problem:list
 wiki:forum:list
 
+users
+	$username = id
+
 Users: Hash on user:$id
 	id			= INCR user:id:next
 	username	= string username
