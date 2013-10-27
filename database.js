@@ -138,6 +138,14 @@ var parseInteraction = function(interaction) {
 	return ret;
 };
 
+var deparseInteraction = function(interaction) {
+	var ret = [];
+	ret.push(interaction.attempted ? interaction.attempted.getTime() : '');
+	ret.push(interaction.solved ? interaction.solved.getTime() : '');
+	ret.push(interaction.attempts);
+	return ret.join(':');
+};
+
 db.prototype.addInteraction = function(userid, problemid, correct) {
 	this.getInteraction(userid, problemid, function(interaction) {
 		var now = new Date();
@@ -150,19 +158,18 @@ db.prototype.addInteraction = function(userid, problemid, correct) {
 				interaction.solved = now;
 			}
 		}
-		var joined = util.values(interaction).join(':');
-		rdb.hset('user:problems:' + userid, problemid, joined);
+		rdb.hset('user:'+userid+':problems', problemid, deparseInteraction(interaction));
 	}.bind(this));
 };
 
 db.prototype.getInteraction = function(userid, problemid, callback) {
-	rdb.hget('user:problems:' + userid, problemid, function(err, res) {
+	rdb.hget('user:'+userid+':problems', problemid, function(err, res) {
 		util.dispatch(callback, parseInteraction(res));
 	});
 };
 
 db.prototype.getInteractions = function(userid, callback) {
-	rdb.hgetall('user:problems:' + userid, function(err, res) {
+	rdb.hgetall('user:'+userid+':problems', function(err, res) {
 		if (res) {
 			for (var key in res) {
 				if (res.hasOwnProperty(key)) {

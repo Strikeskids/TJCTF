@@ -26,9 +26,9 @@ Problems:
 		date		= creation date
 
 	Interations
-		problem:users:$problemid	= set of user $id
+		problem:$problemid:users	= set of user $id
 
-	Interactions: Hash on user:problems:$userid
+	Interactions: Hash on user:$userid:problems
 		$problemid	= unix timestamp of first attempt:unix timestamp of first solution:attempts
 
 	Leaderboard: problem:scores sorted set
