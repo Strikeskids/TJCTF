@@ -1,4 +1,4 @@
-var util = require('util');
+var util = require('./util');
 var redis = require('redis');
 var crypto = require('crypto');
 var bcrypt = require('bcrypt');
@@ -16,7 +16,7 @@ var rdb = redis.createClient(null, null);
 var testProblem = {
 	name: 'problem',
 	date: new Date(),
-	id: 0,
+	id: 1,
 	points: 100,
 	author: 'Strikeskids',
 	statement: 'My test problem!!!',
@@ -25,6 +25,8 @@ var testProblem = {
 var testUser = {
 	username: 'Strikeskids',
 	password: '$2a$12$EECy0Vupy86vhAfCJ4ei/eDTukWoSFoAnL1zp5B8iYd2O/3R98zs.',
+	email: "csc@strikeskids.com",
+	date: 1382910172012,
 	id: 1
 };
 
@@ -36,12 +38,12 @@ db.prototype.init = function() {
 	
 };
 
-db.prototype.checkProblem = function(problemid, answer, callback) {
+db.prototype.checkProblem = function(userid, problemid, answer, callback) {
 	this.getProblem(problemid, function(problem) {
 		if (!problem) callback();
 		var correct = shasum(answer) === problem.answer;
-		if (correct) {
-			// do user stuff
+		if (userid && correct) {
+			this.addInteraction(userid, problemid, correct);
 		}
 		util.dispatch(callback, correct, problem);
 	}.bind(this));
@@ -60,8 +62,9 @@ var getUserIdFromName = function(username, callback) {
 		value = parseInt(value);
 		if (!isNaN(value)) {
 			util.dispatch(callback, value);
+		} else {
+			util.dispatch(callback);
 		}
-		util.dispatch(callback);
 	});
 };
 
@@ -76,8 +79,10 @@ var getUserFromId = function(uid, callback) {
 };
 
 db.prototype.getUser = function(info, callback) {
-	if (info.hasOwnProperty('username'))
+	if (info.hasOwnProperty('username')) {
 		util.dispatch(callback, info);
+		return;
+	}
 	var finish = function(id) {
 		if (typeof id === 'number') {
 			getUserFromId(id, callback);
@@ -110,7 +115,7 @@ db.prototype.login = function(user, password, callback) {
 };
 
 var parseInteraction = function(interaction) {
-	var parts = interaction.split('/');
+	var parts = interaction ? interaction.split(':') : [];
 	var ret = {
 		attempted: null,
 		solved: null,
@@ -133,13 +138,26 @@ var parseInteraction = function(interaction) {
 	return ret;
 };
 
+db.prototype.addInteraction = function(userid, problemid, correct) {
+	this.getInteraction(userid, problemid, function(interaction) {
+		var now = new Date();
+		if (!interaction.attempted){
+			interaction.attempted = now;
+		}
+		if (!interaction.solved) {
+			interaction.attempts++;
+			if (correct) {
+				interaction.solved = now;
+			}
+		}
+		var joined = util.values(interaction).join(':');
+		rdb.hset('user:problems:' + userid, problemid, joined);
+	}.bind(this));
+};
+
 db.prototype.getInteraction = function(userid, problemid, callback) {
 	rdb.hget('user:problems:' + userid, problemid, function(err, res) {
-		if (res) {
-			util.dispatch(callback, parseInteraction(res));
-		} else {
-			util.dispatch(callback);
-		}
+		util.dispatch(callback, parseInteraction(res));
 	});
 };
 
