@@ -70,7 +70,7 @@ app.get('/problems/:problemid', function(req, res) {
 });
 app.post('/problems/:problemid', function(req, res) {
 	if ('problemid' in req.body && 'answer' in req.body) {
-		db.checkProblem(req.body.problemid, req.body.answer, function(err, correct, problem) {
+		db.checkProblem(req.signedCookies.uid, req.body.problemid, req.body.answer, function(err, correct, problem) {
 			if (problem) {
 				res.locals.answer = req.body.answer;
 				res.locals.problem = problem;
