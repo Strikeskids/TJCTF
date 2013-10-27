@@ -17,48 +17,72 @@ app.use(express.urlencoded());
 
 app.use(express.cookieParser('my secret string (maybe generate this)'))
 app.use(function(req, res, next) {
-	// REMOVE this
-	req.signedCookies.uid = 1;
 	if ('uid' in req.signedCookies) {
-		res.cookie('uid', req.signedCookies.uid, {secure: true});
-		res.locals.user = db.getUser(req.signedCookies.uid);
+		db.getUser(req.signedCookies.uid, function(user) {
+			if (user) {
+				setUser(res, user.id);
+				res.locals.user = user;
+				next();
+			}
+		});
+	} else {
+		next();
 	}
-	next();
 });
 
+var setUser = function(res, user) {
+	if (user) {
+		var value = typeof user === 'number' || typeof user === 'string' ? user : user.id;
+		res.cookie('uid', value, {signed: true});
+	}
+};
+
 app.get('/', function(req, res) {
-	console.log(res.locals.user);
 	res.render('index.jade');
 });
 
 //Problem related stuff
 
 app.get('/problems', function(req, res) {
-	res.render('list.jade', {
-		problems: db.getProblems()
+	db.getProblems(function(problems) {
+		res.locals.problems = problems;
+		if (res.locals.user) {
+			db.getInteractions(res.locals.user.id, function(interactions) {
+				res.locals.interactions = interactions;
+				res.render('list.jade');
+			});
+		} else {
+			res.render('list.jade');
+		}
 	});
 });
 
 app.get('/problems/:problemid', function(req, res) {
-	problem = db.getProblem(req.params.problemid);
-	if (problem) {
-		res.render('problem.jade', {
-			problem: db.getProblem(req.params.problemid)
-		});
-	} else {
-		res.redirect('/problems');
-	}
+	db.getProblem(req.params.problemid, function(problem) {
+		if (problem) {
+			res.render('problem.jade', {
+				problem: problem
+			});
+		} else {
+			res.redirect('/problems');
+		}
+	});
 });
 app.post('/problems/:problemid', function(req, res) {
 	if ('problemid' in req.body && 'answer' in req.body) {
-		response = db.checkProblem(req.body.problemid, req.body.answer);
-		if (response.problem) {
-			res.locals.answer = req.body.answer;
-			res.locals(response);
-			res.render('problem.jade');
-		}
+		db.checkProblem(req.body.problemid, req.body.answer, function(err, correct, problem) {
+			if (problem) {
+				res.locals.answer = req.body.answer;
+				res.locals.problem = problem;
+				res.locals.correct = correct;
+				res.render('problem.jade');
+			} else {
+				res.redirect('/problems');
+			}
+		});
+	} else {
+		req.redirect('/problems');
 	}
-	req.redirect('/problems');
 });
 
 //User related stuff
@@ -71,14 +95,17 @@ app.get('/login', function(req, res) {
 });
 app.post('/login', function(req, res) {
 	if ('username' in req.body && 'password' in req.body) {
-		
+		db.login(req.body.username, req.body.password, function(user) {
+			setUser(res, user);
+			res.redirect('/');
+		});
 	} else {
 		res.redirect('/');
 	}
 });
 
 app.get('/logout', function(req, res) {
-	res.cookie('uid', null);
+	res.clearCookie('uid');
 	res.redirect('/');
 });
 

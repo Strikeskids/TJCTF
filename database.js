@@ -10,7 +10,8 @@ var shasum = function(input) {
 var db = function() {
 };
 
-var rdb;
+// var rdb;
+var rdb = redis.createClient(null, null);
 
 var testProblem = {
 	name: 'problem',
@@ -22,7 +23,9 @@ var testProblem = {
 	answer: 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
 };
 var testUser = {
-	username: 'Strikeskids'
+	username: 'Strikeskids',
+	password: '$2a$12$EECy0Vupy86vhAfCJ4ei/eDTukWoSFoAnL1zp5B8iYd2O/3R98zs.',
+	id: 1
 };
 
 var problems = {
@@ -33,57 +36,126 @@ db.prototype.init = function() {
 	
 };
 
-db.prototype.checkProblem = function(problemid, answer) {
-	problem = this.getProblem(problemid);
-	if (!problem) {
-		return {};
-	}
-	correct = shasum(answer) === problem.answer;
-	if (correct) {
-		//do user-related stuff
-	}
-	return {
-		problem: problem,
-		correct: correct
-	};
+db.prototype.checkProblem = function(problemid, answer, callback) {
+	this.getProblem(problemid, function(problem) {
+		if (!problem) callback();
+		var correct = shasum(answer) === problem.answer;
+		if (correct) {
+			// do user stuff
+		}
+		util.dispatch(callback, correct, problem);
+	}.bind(this));
 };
 
-db.prototype.getProblem = function(problemid) {
-	return testProblem;
+db.prototype.getProblem = function(problemid, callback) {
+	util.dispatch(callback, testProblem);
 };
 
-db.prototype.getProblems = function() {
-	return problems;
+db.prototype.getProblems = function(callback) {
+	util.dispatch(callback, problems);
 };
 
-db.prototype.getUser = function(uid) {
-	return testUser;
+var getUserIdFromName = function(username, callback) {
+	rdb.hget('users', username, function(err, value) {
+		value = parseInt(value);
+		if (!isNaN(value)) {
+			util.dispatch(callback, value);
+		}
+		util.dispatch(callback);
+	});
 };
 
-db.prototype.getUserId = function(username) {
-
+var getUserFromId = function(uid, callback) {
+	rdb.hgetall('user:'+uid, function(err, reply) {
+		if (reply) {
+			util.dispatch(callback, reply);
+		} else {
+			util.dispatch(callback);
+		}
+	});
 };
 
-db.prototype.getUserFromName = function(username) {
-	var id = this.getUserId(username);
-	if (typeof id === 'number') {
-		return getUser(id);
-	}
-	return null;
-};
-
-db.prototype.login = function(username, password, callback) {
-	var user = this.getUserFromName(username);
-	if (user) {
-		callback = function() { callback(user.id);  };
-		
+db.prototype.getUser = function(info, callback) {
+	if (info.hasOwnProperty('username'))
+		util.dispatch(callback, info);
+	var finish = function(id) {
+		if (typeof id === 'number') {
+			getUserFromId(id, callback);
+		} else {
+			util.dispatch(callback);
+		}
+	}.bind(this);
+	var parsed = parseInt(info);
+	if (isNaN(parsed)) {
+		getUserIdFromName(info, finish);
 	} else {
-		callback();
+		finish(parsed);
 	}
 };
 
-db.prototype.getInteraction = function(userid, problemid) {
+db.prototype.login = function(user, password, callback) {
+	this.getUser(user, function(user) {
+		if (user) {
+			bcrypt.compare(password, user.password, function(err, res) {
+				if (res === true) {
+					util.dispatch(callback, user);
+				} else {
+					util.dispatch(callback);
+				}
+			});
+		} else {
+			util.dispatch(callback);
+		}
+	});
+};
 
+var parseInteraction = function(interaction) {
+	var parts = interaction.split('/');
+	var ret = {
+		attempted: null,
+		solved: null,
+		attempts: 0
+	};
+	for (var i=0;i<parts.length && i < 3;++i) {
+		var parsed = parseInt(parts[i]);
+		if (isNaN(parsed)){
+			break;
+		} else if (parsed <= 0) {
+			continue
+		} else if (i === 0) {
+			ret.attempted = new Date(parsed);
+		} else if (i === 1) {
+			ret.solved = new Date(parsed);
+		} else if (i === 2) {
+			ret.attempts = parsed;
+		}
+	}
+	return ret;
+};
+
+db.prototype.getInteraction = function(userid, problemid, callback) {
+	rdb.hget('user:problems:' + userid, problemid, function(err, res) {
+		if (res) {
+			util.dispatch(callback, parseInteraction(res));
+		} else {
+			util.dispatch(callback);
+		}
+	});
+};
+
+db.prototype.getInteractions = function(userid, callback) {
+	rdb.hgetall('user:problems:' + userid, function(err, res) {
+		if (res) {
+			for (var key in res) {
+				if (res.hasOwnProperty(key)) {
+					res[key] = parseInteraction(res[key]);
+				}
+			}
+			util.dispatch(callback, res);
+		} else {
+			util.dispatch(callback);
+		}
+	});
 };
 
 module.exports = new db();
