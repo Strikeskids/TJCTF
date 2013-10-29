@@ -3,9 +3,10 @@ mixin htmlbase(title)
 	html(lang='en')
 		head
 			title= title
+			link(rel='stylesheet',type='text/css',href='/css/main.css')
 		body
 			header
-				h1 TJCSC
+				div.logo TJCSC
 				nav
 					ul.navigation
 						li: a(href='/') Home

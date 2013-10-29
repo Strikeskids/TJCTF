@@ -2,7 +2,12 @@ var express = require('express');
 var http = require('http');
 var jade = require('jade');
 var path = require('path');
+var crypto = require('crypto');
 var db = require('./database');
+
+var shasum = function(input) {
+	return crypto.createHash('sha1').update(input).digest('hex');
+};
 
 var app = express();
 var server = http.createServer(app);
@@ -107,6 +112,52 @@ app.post('/login', function(req, res) {
 app.get('/logout', function(req, res) {
 	res.clearCookie('uid');
 	res.redirect('/');
+});
+
+var captchaOps = [
+	{
+		text: ['times', 'multiplied by'],
+		perf: function(a, b) { return a * b; }
+	},
+	{
+		text: ['minus', 'subtracted by'],
+		perf: function(a, b) { return a - b; }
+	}, 
+	{
+		text: ['plus', 'added to', 'and'],
+		perf: function(a, b) { return a + b; }
+	}
+];
+
+var generateCaptcha = function() {
+	var max = 12;
+	var a = Math.floor(Math.random() * max), b = Math.floor(Math.random() * max);
+	var op = captchaOps[Math.floor(Math.random() * captchaOps.length)];
+	var ans = shasum('captcha' + op.perf(a, b).toString());
+	return {
+		question: 'What is '+a+' '+op.text[Math.floor(Math.random() * op.text.length)]+' '+b+'?',
+		answer: ans
+	};
+};
+
+app.get('/register', function(req, res) {
+	res.render('register.jade', {
+		captcha: generateCaptcha()
+	});
+});
+
+app.post('/register', function(req, res) {
+	res.locals.prev = req.body;
+	db.addUser(req.body, function(response) {
+		if (typeof response === 'boolean') {
+			res.redirect('/');
+		} else {
+			res.render('register.jade', {
+				failed: response,
+				captcha: generateCaptcha()
+			});
+		}
+	});
 });
 
 app.listen(4000);

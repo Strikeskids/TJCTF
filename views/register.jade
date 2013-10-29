@@ -1,0 +1,19 @@
+include mixins
+
++htmlbase('Register')
+	- if (!prev) prev = {};
+	- if (!failed) failed = {};
+	form(method='post')
+		label(for='email') Email:
+		input(type='email',name='email',value=prev.email,class=failed.email?'failed':'')
+		label(for='username') Username:
+		input(type='username',name='username',value=prev.username,class=failed.username?'failed':'')
+		label(for='password') Password:
+		input(type='password',name='password',class=failed.password?'failed':'')
+		label(for='repassword') Re-enter:
+		input(type='password',name='repassword',class=failed.repassword?'failed':'')
+		| To protect against spammers, please enter the answer to the following question:
+		= captcha.question
+		input(type='hidden',name='captchaans',value=captcha.answer)
+		input(type='text',name='captcha',class=failed.captcha?'failed':'')
+		input(type='submit',value='Register')

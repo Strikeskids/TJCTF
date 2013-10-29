@@ -114,6 +114,74 @@ db.prototype.login = function(user, password, callback) {
 	});
 };
 
+db.prototype.addUser = function(data, callback) {
+	var fails = {};
+	if (!data.username || data.username.length < 5) {
+		fails.user = true;
+	}
+	if (!data.password || data.password.length < 5) {
+		fails.password = true;
+	}
+	if (data.password !== data.repassword) {
+		fails.repassword = true;
+	}
+	if (shasum('captcha' + data.captcha) !== data.captchaans) {
+		fails.captcha = true;
+	}
+	if (!data.email || data.email.length < 5 || data.email.indexOf('@') < 0) {
+		fails.email = true;
+	}
+	if (Object.keys(fails).length > 0) {
+		util.dispatch(callback, fails);
+		return;
+	}
+	getUserIdFromName(data.username, function(id) {
+		if (typeof id === 'number') {
+			fails.user = true;
+			util.dispatch(callback, fails);
+			return;
+		} else {
+			var user = {
+				username: data.username,
+				email: data.email,
+				date: Date.now()
+			};
+			var calls = 0, callsNeeded = 2;
+			var finishCreation = function() {
+				if (++calls >= callsNeeded) {
+					var multi = rdb.multi();
+					multi.hset('users', user.username, user.id);
+					multi.hmset('user:'+user.id, user);
+					multi.exec(function(err, res) {
+						if (!err) {
+							util.dispatch(callback, true);
+						} else {
+							util.dispatch(callback, false);
+						}
+					});
+				}
+			};
+			rdb.incr('user:id:next', function(err, res) {
+				if (typeof res === 'number') {
+					user.id = res;
+					finishCreation();
+				} else {
+					util.dispatch(callback, false);
+				}
+			});
+			console.log("Hashing",data.password);
+			bcrypt.hash(data.password, 12, function(err, hash) {
+				if (hash) {
+					user.password = hash;
+					finishCreation();
+				} else {
+					util.dispatch(callback, false);
+				}
+			});
+		}
+	});
+};
+
 var parseInteraction = function(interaction) {
 	var parts = interaction ? interaction.split(':') : [];
 	var ret = {
