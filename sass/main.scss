@@ -5,3 +5,14 @@ body {
 	width: 720px;
 }
 
+.problem {
+	@include grid-row;
+	width: 100%;
+	padding: emCalc(10px) 0;
+	margin-bottom: emCalc(5px);
+	border: thin solid;
+	& > .problem-name   { @include grid-column(6); }
+	& > .problem-author { @include grid-column(3); }
+	& > .problem-solved { @include grid-column(1); }
+	& > .problem-points { @include grid-column(2); }
+}
