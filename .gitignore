@@ -1,3 +1,4 @@
+*.log
 redisdb
 node_modules
 public
