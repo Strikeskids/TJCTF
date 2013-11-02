@@ -1,8 +1,8 @@
 Variables in a key represented by $
 
 Lists of all things
-user:list
-problem:list
+list:user
+list:problem
 wiki:forum:list
 
 users
@@ -19,7 +19,7 @@ Problems:
 	Data: Hash on problem:$id
 		id			= INCR problem:id:next
 		answer		= answer hash bits unencoded. hashed from key=value form urlencoded alphabetically by key
-		statement	= string problem statement in md format
+		statement	= string problem statement
 		name		= string problem name
 		author		= problem author user $id
 		points		= integer point value

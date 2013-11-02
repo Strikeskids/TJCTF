@@ -13,26 +13,9 @@ var db = function() {
 // var rdb;
 var rdb = redis.createClient(null, null);
 
-var testProblem = {
-	name: 'problem',
-	date: new Date(),
-	id: 1,
-	points: 100,
-	author: 'Strikeskids',
-	statement: 'My test problem!!!',
-	answer: 'da39a3ee5e6b4b0d3255bfef95601890afd80709'
-};
-var testUser = {
-	username: 'Strikeskids',
-	password: '$2a$12$EECy0Vupy86vhAfCJ4ei/eDTukWoSFoAnL1zp5B8iYd2O/3R98zs.',
-	email: "csc@strikeskids.com",
-	date: 1382910172012,
-	id: 1
-};
-
-var problems = {
-	'0': testProblem
-};
+var problems = null;
+var lastUpdate = 0;
+var problemUpdateDelay = 5*60*1000;
 
 db.prototype.checkProblem = function(userid, problemid, answer, callback) {
 	this.getProblem(problemid, function(problem) {
@@ -46,11 +29,40 @@ db.prototype.checkProblem = function(userid, problemid, answer, callback) {
 };
 
 db.prototype.getProblem = function(problemid, callback) {
-	util.dispatch(callback, testProblem);
+	this.getProblems(function(problems) {
+		if (problemid in problems){
+			util.dispatch(callback, problems[problemid]);
+		} else {
+			util.dispatch(callback);
+		}
+	});
 };
 
 db.prototype.getProblems = function(callback) {
-	util.dispatch(callback, problems);
+	if (problems === null || Date.now() - lastUpdate > problemUpdateDelay) {
+		rdb.lrange('list:problem', 0, -1, function(err, ids) {
+			console.log(err, ids);
+			if (err) {
+				util.dispatch(callback, problems || {});
+			}
+			var tmpProblems = {};
+			var multi = rdb.multi();
+			for (var i=0;i<ids.length;++i) {
+				multi.hgetall('problem:'+ids[i]);
+			}
+			multi.exec(function(err, replies) {
+				console.log(err, replies);
+				if (err) {
+					util.dispatch(callback, problems || {});
+				}
+				for (var i=0;i<ids.length;++i) {
+					tmpProblems[ids[i]] = replies[i];
+				}
+				lastUpdate = Date.now();
+				util.dispatch(callback, problems = tmpProblems);
+			});
+		});
+	}
 };
 
 var getUserIdFromName = function(username, callback) {
@@ -148,6 +160,7 @@ db.prototype.addUser = function(data, callback) {
 					var multi = rdb.multi();
 					multi.hset('users', user.username, user.id);
 					multi.hmset('user:'+user.id, user);
+					multi.lpush('list:user', user.id);
 					multi.exec(function(err, res) {
 						if (!err) {
 							util.dispatch(callback, true);
