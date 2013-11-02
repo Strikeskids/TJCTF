@@ -5,17 +5,16 @@ mixin htmlbase(title)
 			title= title
 			link(rel='stylesheet',type='text/css',href='/css/main.css')
 		body
-			header
-				nav
-					ul.title
-						li TJCSC
-					ul.navigation
-						li: a(href='/') Home
+			nav.top-bar
+				ul.title-area
+					li.name: h1: a(href='/') TJCSC
+				section.top-bar-section
+					ul.left
 						li: a Wiki
 						li: a(href='/problems') Problems
 						li: a Scores
 						li: a About
-					ul.user
+					ul.right
 						if user && typeof user !== 'undefined'
 							li: a= user.username
 							li: a(href='Logout') Logout
