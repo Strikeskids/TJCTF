@@ -13,6 +13,7 @@
     "socket.io": "~0.9.16",
     "hiredis": "~0.1.15",
     "redis": "~0.9.0",
-    "normalize-css": "~2.2.0"
+    "normalize-css": "~2.2.0",
+    "foundation": "~4.2.1-1"
   }
 }

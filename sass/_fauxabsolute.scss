@@ -1,0 +1,11 @@
+@mixin faux-absolute {
+	position: relative;
+	left: 100%;
+	float: left;
+}
+
+@mixin row {
+	position: relative;
+	width: 100%;
+	float: left;
+}

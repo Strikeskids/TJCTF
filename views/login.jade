@@ -1,9 +1,7 @@
 include mixins
 
 +htmlbase('TJCSC - Login')
-	form(method='post')
-		label(for='username') Username:
-		input(type='text',name='username')
-		label(for='password') Password:
-		input(type='password', name='password')
+	form(method='post',action='/login')
+		input(type='text',name='username',placeholder="Username")
+		input(type='password', name='password',placeholder="Password")
 		input(type='submit', value='Login')

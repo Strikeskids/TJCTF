@@ -1,9 +1,8 @@
 include mixins
 
 +htmlbase('Problem List')
-	- for (var problemid in problems)
-		- var problem = problems[problemid]
-		section.problem
+	each problem in problems
+		div.problem
 			div.problem-name: a(href=('/problems/' + problem.id))= problem.name
 			div.problem-author= problem.author
 			div.problem-solved

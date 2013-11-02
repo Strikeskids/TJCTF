@@ -10,4 +10,7 @@ include mixins
 		input(type='text', name='answer', id='answer', value=answer)
 		if typeof correct === 'boolean'
 			img.inline(src='/images/' + (correct ? 'correct' : 'incorrect') + '.png')
-		input(type='submit', value='Submit')
+		if user
+			input(type='submit', value='Submit')
+		else
+			| Please log in to submit.

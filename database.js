@@ -34,10 +34,6 @@ var problems = {
 	'0': testProblem
 };
 
-db.prototype.init = function() {
-	
-};
-
 db.prototype.checkProblem = function(userid, problemid, answer, callback) {
 	this.getProblem(problemid, function(problem) {
 		if (!problem) callback();

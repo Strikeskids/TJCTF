@@ -1,2 +1,121 @@
-@import "normalize"
+@import "normalize";
+@import "fauxabsolute";
 
+$nav-top-pad: 5px;
+$text-color: #f5b340;
+$link-color: #f79302;
+$link-hover: #e69302;
+$nav-color: #333;
+$background-color: black;
+
+a {
+	color: $link-color;
+	&:hover {
+		color: $link-hover
+	}
+}
+
+html {
+	background-color: $background-color;
+	color: $text-color;
+}
+
+body {
+	margin: 0px auto;
+	width: 720px;
+}
+
+.problem {
+	@include row;
+	border: {
+		style: ridge;
+		width: thin;
+		color: $nav-color;
+	}
+	padding: 5px 0;
+	margin-bottom: 5px;
+	div {
+		@include faux-absolute;
+		padding-left: 1%;
+		float: left;
+		&:last-child { padding-right: 1%; }
+		&.problem-name {
+			margin-left: -100%;
+			width: 59%;
+		}
+		&.problem-author {
+			margin-left: -40%;
+			width: 19%;
+		}
+		&.problem-solved {
+			margin-left: -20%;
+			width: 4%;
+		}
+		&.problem-points {
+			margin-left: -15%;
+			text-align: right;
+			width: 13%;
+		}
+	}
+}
+
+header {
+	background-color: $nav-color;
+	margin-bottom: 10px;
+}
+
+nav {
+	position: relative;
+	overflow: hidden;
+	padding: 5px 0;
+	ul {
+		margin: 0px;
+		list-style: none;
+		padding: 0px;
+		li {
+			float: left;
+			padding: $nav-top-pad 10px;
+			border-left: {
+				width: thin;
+				style: solid;
+				color: rgba(90, 90, 90, 0.3);
+			}
+			&:first-child {
+				border-left-style: none;
+			}
+		}
+
+		&.title {
+			clear: left;
+			float: left;
+		}
+
+		&.navigation {
+			float: left;
+		}
+
+		&.user {
+			float:right;
+			clear:right;
+		}
+	}
+}
+
+form {
+	position: relative;
+	overflow: auto;
+	label {
+		clear: left;
+		margin-right: 50%;
+	}
+
+	input[type=text], input[type=email], input[type=password] {
+		float: left;
+		clear: right;
+	}
+
+	input[type=submit] {
+		clear: both;
+		margin: 0px auto;
+	}
+}
