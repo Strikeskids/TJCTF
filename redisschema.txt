@@ -17,6 +17,7 @@ Users: Hash on user:$id
 	password	= password hash bits unencoded
 	email		= user email
 	date		= creation date
+	admin		= true if admin. key does not exist if not admin
 
 Problems:
 	Data: Hash on problem:$id

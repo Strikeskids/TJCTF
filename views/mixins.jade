@@ -10,10 +10,8 @@ mixin htmlbase(title)
 					li.name: h1: a(href='/') TJCSC
 				section.top-bar-section
 					ul.left
-						li: a Wiki
 						li: a(href='/problems') Problems
 						li: a(href='/scores') Scores
-						li: a About
 					ul.right
 						if user && typeof user !== 'undefined'
 							li: a= user.username
@@ -23,3 +21,5 @@ mixin htmlbase(title)
 							li: a(href='/register') Register
 			if block
 				block
+
+- var createClasses = function() { var ret = []; for (var i=0;i<arguments.length;i+=2) { if (arguments[i]) ret.push(arguments[i+1]); } return ret; }

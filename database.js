@@ -2,6 +2,11 @@ var util = require('./util');
 var redis = require('redis');
 var crypto = require('crypto');
 var bcrypt = require('bcrypt');
+var marked = require('marked');
+
+marked.setOptions({
+	sanitize: true
+});
 
 var shasum = function(input) {
 	return crypto.createHash('sha1').update(input).digest('hex');
@@ -70,6 +75,46 @@ db.prototype.getProblems = function(callback) {
 	} else {
 		util.dispatch(callback, problems);
 	}
+};
+
+db.prototype.addProblem = function(data, callback) {
+	var fails = {};
+	if (!data.answer) fails.answer = true;
+	if (!data.points) data.points = 0;
+	if (isNaN(parseInt(data.points))) fails.points = true;
+	if (!data.name) fails.name = true;
+	if (!data.statement || data.statement.length < 10) fails.statement = true;
+	if (Object.keys(fails).length > 0) {
+		util.dispatch(callback, fails);
+		return;
+	}
+	marked(data.statement, function(err, compiled) {
+		if (err) {
+			fails.statement = true;
+			util.dispatch(callback, fails);
+			return;
+		}
+		var prob = {
+			answer: shasum(data.answer),
+			statement: compiled,
+			name: data.name,
+			author: data.author,
+			date: Date.now(),
+			points: data.points
+		};
+		rdb.incr('problem:id:next', function(err, value) {
+			if (err)
+				util.dispatch(callback, false);
+			prob.id = value;
+			var multi = rdb.multi();
+			multi.lpush('list:problem',prob.id);
+			multi.hmset('problem:'+prob.id, prob);
+			multi.exec(function(err) {
+				util.dispatch(callback, err ? false : true);
+			});
+			lastUpdate = 0;
+		});
+	});
 };
 
 var getUserIdFromName = function(username, callback) {
@@ -288,16 +333,24 @@ db.prototype.getHighscores = function(callback) {
 		var multi = rdb.multi();
 		if (scorelist) {
 			for (var i=0;i<scorelist.length;i+=2) {
-				multi.hgetall('user'+userid);
+				multi.hgetall('user:'+scorelist[i]);
 			}
 		}
 		multi.exec(function(err, replies) {
 			var ret = [];
 			if (replies) {
+				var currentRank = 0;
+				var previousScore = -1;
 				for (var i=0;i<replies.length;++i) {
 					var user = replies[i];
-					user.rank = i;
+					if (!user)
+						continue;
 					user.score = scorelist[i*2+1];
+					if (previousScore !== user.score) {
+						currentRank++;
+						previousScore = user.score;
+					}
+					user.rank = currentRank;
 					ret.push(user);
 				}
 			}

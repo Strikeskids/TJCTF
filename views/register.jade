@@ -4,7 +4,7 @@ include mixins
 	- if (!prev) prev = {};
 	- if (!failed) failed = {};
 	form(method='post')
-		input(type='email',name='email',placeholder='Email',value=prev.email,class=failed.email?'error':'')
+		input(type='email',name='email',placeholder='Email',value=prev.email,class=createClasses(failed.email,'error'))
 		input(type='text',name='username',placeholder='Username',value=prev.username,class=failed.username?'error':'')
 		input(type='password',name='password',placeholder='Password',class=failed.password?'error':'')
 		input(type='password',name='repassword',placeholder='Confirm password',class=failed.repassword?'error':'')

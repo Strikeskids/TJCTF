@@ -1,11 +1,17 @@
 include mixins
 
 +htmlbase('Problem List')
+	if user && user.admin
+		a.tiny.button(href='/problems/create') + Create New
+	- if (!interactions) interactions = {};
 	each problem in problems
-		div.problem
+		- var classes = []
+		- var attempted = interactions[problem.id] && interactions[problem.id].attempts > 0
+		- var solved = attempted && interactions[problem.id].solved
+		- if (attempted)
+			- if (interactions[problem.id].solved) classes.push('correct')
+			- else classes.push('incorrect')
+		div.problem(class=createClasses(attempted && solved, 'correct', attempted && !solved, 'incorrect'))
 			div.problem-name: a(href=('/problems/' + problem.id))= problem.name
 			div.problem-author= problem.author
-			div.problem-solved
-				if interactions && interactions[problem.id].attempts > 0
-					img(src='/images/' + (interactions[problem.id].solved ? 'correct' : 'incorrect') + '.png')
 			div.problem-points= problem.points + ' points'

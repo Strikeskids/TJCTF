@@ -1,8 +1,12 @@
 include mixins
 
 +htmlbase('TJCSC High Scores')
-	each user in users
-		div.score
-			div.score-rank= user.rank
-			div.score-user: a= user.username
-			div.score-points= user.points
+	div.score.title
+		div.score-rank Rank
+		div.score-user Username
+		div.score-points Points
+	each row in users
+		div.score(class=createClasses(user && row.id === user.id, 'me'))
+			div.score-rank= row.rank
+			div.score-user: a= row.username
+			div.score-points= row.score

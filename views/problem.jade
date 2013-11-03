@@ -1,15 +1,17 @@
 include mixins
 
 +htmlbase(problem.name)
-	.title
-		h1= problem.name + " by " + problem.author
-		.right= problem.points + " points"
-	section= problem.statement
+	if typeof correct === 'boolean'
+		if correct
+			div.alert-box.success Correct
+		else
+			div.alert-box.alert Incorrect :( Try again
+	h2= problem.name
+	h4.subheader= problem.points + ' points by ' + problem.author
+	section!= problem.statement
 	form(action='', method='post')
 		input(type='hidden', name='problemid', value=problem.id.toString())
 		input(type='text', name='answer', id='answer', value=answer)
-		if typeof correct === 'boolean'
-			img.inline(src='/images/' + (correct ? 'correct' : 'incorrect') + '.png')
 		if user
 			input(type='submit', value='Submit')
 		else

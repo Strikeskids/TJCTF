@@ -62,6 +62,30 @@ app.get('/problems', function(req, res) {
 	});
 });
 
+app.get('/problems/create', function(req, res) {
+	if (!res.locals.user || !res.locals.user.admin) {
+		res.redirect('/problems');
+		return;
+	}
+	res.render('createproblem.jade');
+});
+
+app.post('/problems/create', function(req, res) {
+	if (!res.locals.user || !res.locals.user.admin) {
+		res.redirect('/problems');
+	}
+	res.locals.prev = req.body;
+	var data = req.body;
+	data.author = res.locals.user.username;
+	db.addProblem(data, function(response) {
+		if (typeof response === 'boolean') {
+			res.redirect('/problems');
+		} else {
+			res.render('createproblem.jade', { failed: response });
+		}
+	});
+});
+
 app.get('/problems/:problemid', function(req, res) {
 	db.getProblem(req.params.problemid, function(problem) {
 		if (problem) {
@@ -75,7 +99,7 @@ app.get('/problems/:problemid', function(req, res) {
 });
 app.post('/problems/:problemid', function(req, res) {
 	if ('problemid' in req.body && 'answer' in req.body) {
-		db.checkProblem(req.signedCookies.uid, req.body.problemid, req.body.answer, function(err, correct, problem) {
+		db.checkProblem(req.signedCookies.uid, req.body.problemid, req.body.answer, function(correct, problem) {
 			if (problem) {
 				res.locals.answer = req.body.answer;
 				res.locals.problem = problem;
@@ -90,8 +114,12 @@ app.post('/problems/:problemid', function(req, res) {
 	}
 });
 
+
+
 app.get('/scores', function(req, res) {
-	res.render('scores.jade', { users: db.getHighscores() });
+	db.getHighscores(function(users) {
+		res.render('scores.jade', { users: users });
+	});
 });
 
 //User related stuff

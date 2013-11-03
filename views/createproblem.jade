@@ -1,0 +1,12 @@
+include mixins
+
++htmlbase('Create problem')
+	- if (!prev) prev = {};
+	- if (!failed) failed = {};
+	form(method='post')
+		input(type='text',name='name',placeholder='Problem Title',value=prev.name,class=createClasses(failed.name,'error'))
+		input(type='text',name='points',placeholder='Problem Points',value=prev.points,class=createClasses(failed.points,'error'))
+		textarea.code(name='statement',rows=20,placeholder='Statement (Markdown)',class=createClasses(failed.statement,'error'))
+			=prev.statement
+		input(type='text',name='answer',placeholder='Answer',value=prev.answer,class=createClasses(failed.answer,'error'))
+		input(type='submit',value='Create')

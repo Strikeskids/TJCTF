@@ -5,23 +5,45 @@ body {
 	width: 720px;
 }
 
-.problem {
+.table-row {
 	@include grid-row;
 	width: 100%;
 	padding: emCalc(10px) 0;
-	margin-bottom: emCalc(5px);
+	margin-bottom: emCalc(2px);
 	border: thin solid;
+	&.title {
+		font-weight: bold;
+	}
+}
+
+.problem {
+	@extend .table-row;
 	& > .problem-name   { @include grid-column(6); }
-	& > .problem-author { @include grid-column(3); }
-	& > .problem-solved { @include grid-column(1); }
+	& > .problem-author { @include grid-column(4); }
 	& > .problem-points { @include grid-column(2); }
+	&.correct {
+		background-color: #88f075;
+	}
+	&.incorrect {
+		background-color: #fd7b85;
+	}
 }
 
 .score {
-	@include grid-row;
-	width: 100%;
-	padding: emCalc(10px) 0;
+	@extend .table-row;
 	& > .score-rank { @include grid-column(1); }
-	& > .score-user { @include grid-column(7); }
-	& > .score-points { @include grid-column(4); }
+	& > .score-user { @include grid-column(9); }
+	& > .score-points { @include grid-column(2); }
+	&.me {
+		background-color: #f7f7c1;
+	}
+}
+
+input.code {
+	font-family: monospace;
+}
+
+textarea.code {
+	@extend input.code;
+	height: 20.3em;
 }
