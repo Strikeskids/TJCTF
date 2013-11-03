@@ -1,0 +1,8 @@
+include mixins
+
++htmlbase('TJCSC High Scores')
+	each user in users
+		div.score
+			div.score-rank= user.rank
+			div.score-user: a= user.username
+			div.score-points= user.points

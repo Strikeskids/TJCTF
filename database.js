@@ -29,6 +29,7 @@ db.prototype.checkProblem = function(userid, problemid, answer, callback) {
 };
 
 db.prototype.getProblem = function(problemid, callback) {
+	// console.log("Getting problem",problemid);
 	this.getProblems(function(problems) {
 		if (problemid in problems){
 			util.dispatch(callback, problems[problemid]);
@@ -39,9 +40,9 @@ db.prototype.getProblem = function(problemid, callback) {
 };
 
 db.prototype.getProblems = function(callback) {
-	if (problems === null || Date.now() - lastUpdate > problemUpdateDelay) {
+	if (!problems || Date.now() - lastUpdate > problemUpdateDelay) {
 		rdb.lrange('list:problem', 0, -1, function(err, ids) {
-			console.log(err, ids);
+			// console.log(err, ids);
 			if (err) {
 				util.dispatch(callback, problems || {});
 			}
@@ -51,17 +52,23 @@ db.prototype.getProblems = function(callback) {
 				multi.hgetall('problem:'+ids[i]);
 			}
 			multi.exec(function(err, replies) {
-				console.log(err, replies);
+				// console.log(err, replies);
 				if (err) {
 					util.dispatch(callback, problems || {});
 				}
 				for (var i=0;i<ids.length;++i) {
-					tmpProblems[ids[i]] = replies[i];
+					var prob = replies[i];
+					prob.date = new Date(parseInt(prob.date));
+					prob.points = parseInt(prob.points);
+					prob.id = parseInt(prob.id);
+					tmpProblems[ids[i]] = prob;
 				}
 				lastUpdate = Date.now();
 				util.dispatch(callback, problems = tmpProblems);
 			});
 		});
+	} else {
+		util.dispatch(callback, problems);
 	}
 };
 
@@ -233,10 +240,26 @@ db.prototype.addInteraction = function(userid, problemid, correct) {
 			interaction.attempts++;
 			if (correct) {
 				interaction.solved = now;
+				this.updateScore(userid, problemid);
 			}
 		}
 		rdb.hset('user:'+userid+':problems', problemid, deparseInteraction(interaction));
 	}.bind(this));
+};
+
+db.prototype.updateScore = function(userid, problemid) {
+	this.getProblem(problemid, function(problem) {
+		if (problem && problem.points > 0) {
+			rdb.exists('user:'+userid+'submit', function(err, reply) {
+				if (!reply) {
+					var multi = rdb.multi();
+					multi.setex('user:'+userid+'submit',5,userid);
+					multi.zincrby('problem:scores',problem.points,userid);
+					multi.exec();
+				}
+			});
+		}
+	});
 };
 
 db.prototype.getInteraction = function(userid, problemid, callback) {
@@ -257,6 +280,29 @@ db.prototype.getInteractions = function(userid, callback) {
 		} else {
 			util.dispatch(callback);
 		}
+	});
+};
+
+db.prototype.getHighscores = function(callback) {
+	rdb.zrevrange('problem:scores',0,-1,'withscores', function(err, scorelist) {
+		var multi = rdb.multi();
+		if (scorelist) {
+			for (var i=0;i<scorelist.length;i+=2) {
+				multi.hgetall('user'+userid);
+			}
+		}
+		multi.exec(function(err, replies) {
+			var ret = [];
+			if (replies) {
+				for (var i=0;i<replies.length;++i) {
+					var user = replies[i];
+					user.rank = i;
+					user.score = scorelist[i*2+1];
+					ret.push(user);
+				}
+			}
+			util.dispatch(callback, ret);
+		});
 	});
 };
 

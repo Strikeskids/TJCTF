@@ -90,6 +90,10 @@ app.post('/problems/:problemid', function(req, res) {
 	}
 });
 
+app.get('/scores', function(req, res) {
+	res.render('scores.jade', { users: db.getHighscores() });
+});
+
 //User related stuff
 app.get('/login', function(req, res) {
 	if (res.locals.user) {
@@ -101,8 +105,12 @@ app.get('/login', function(req, res) {
 app.post('/login', function(req, res) {
 	if ('username' in req.body && 'password' in req.body) {
 		db.login(req.body.username, req.body.password, function(user) {
-			setUser(res, user);
-			res.redirect('/');
+			if (user) {
+				setUser(res, user);
+				res.redirect('/');
+			} else {
+				res.render('login.jade', { failed: true });
+			}
 		});
 	} else {
 		res.redirect('/');

@@ -16,3 +16,12 @@ body {
 	& > .problem-solved { @include grid-column(1); }
 	& > .problem-points { @include grid-column(2); }
 }
+
+.score {
+	@include grid-row;
+	width: 100%;
+	padding: emCalc(10px) 0;
+	& > .score-rank { @include grid-column(1); }
+	& > .score-user { @include grid-column(7); }
+	& > .score-points { @include grid-column(4); }
+}

@@ -1,6 +1,8 @@
 include mixins
 
 +htmlbase('TJCSC - Login')
+	if failed
+		div.alert-box.alert Username or password incorrect
 	form(method='post',action='/login')
 		input(type='text',name='username',placeholder="Username")
 		input(type='password', name='password',placeholder="Password")

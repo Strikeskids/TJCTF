@@ -1,6 +1,6 @@
 include mixins
 
-+htmlbase(problem.name +  " (" + new Date(problem.date).toLocaleDateString() + ")")
++htmlbase(problem.name)
 	.title
 		h1= problem.name + " by " + problem.author
 		.right= problem.points + " points"

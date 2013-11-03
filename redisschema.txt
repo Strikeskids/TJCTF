@@ -8,6 +8,9 @@ wiki:forum:list
 users
 	$username = id
 
+user:$id:submit
+	problem submit time
+
 Users: Hash on user:$id
 	id			= INCR user:id:next
 	username	= string username
